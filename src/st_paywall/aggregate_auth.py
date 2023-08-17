@@ -2,8 +2,9 @@ import streamlit as st
 from .google_auth import get_logged_in_user_email, show_login_button
 from .stripe_auth import is_active_subscriber, redirect_button
 from .buymeacoffee_auth import get_bmac_payers
+import os
 
-payment_provider = st.secrets.get("payment_provider", "stripe")
+payment_provider = os.environ.get("payment_provider", "stripe")
 
 
 def add_auth(required=True):
