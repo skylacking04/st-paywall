@@ -5,15 +5,28 @@ import jwt
 import streamlit as st
 from httpx_oauth.clients.google import GoogleOAuth2
 from httpx_oauth.oauth2 import OAuth2Token
-import os
+
+
+
 
 testing_mode = os.environ.get("TESTING_MODE", False)
+payment_provider = os.environ.get("PAYMENT_PROVIDER", "stripe")
+stripe_api_key_test = os.environ.get("stripe_api_key_test")
+stripe_api_key = os.environ.get("stripe_api_key")
+stripe_link = os.environ.get("stripe_link")
+stripe_link_test = os.environ.get("stripe_link_test")  
+client_id = os.environ.get("client_id")
+client_secret = os.environ.get("client_secret")
+redirect_url_test = os.environ.get("redirect_url_test")
+redirect_url = os.environ.get("redirect_url")
+bmac_api_key = os.environ.get("bmac_api_key")
+bmac_link = os.environ.get("bmac_link")
+
+# testing_mode = st.secrets.get("testing_mode", False)
 
 
-client_id = os.environ.get("CLIENT_ID")
-client_secret = os.environ.get("CLIENT_SECRET")
 redirect_url = (
-    os.environ.get("redirect_url_Test") if testing_mode else os.environ.get("redirect_url")
+    os.environ.get("redirect_url") if testing_mode else os.environ.get("redirect_url")
 )
 
 client = GoogleOAuth2(client_id=client_id, client_secret=client_secret)
