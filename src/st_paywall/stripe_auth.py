@@ -1,14 +1,29 @@
 import streamlit as st
 import stripe
 import urllib.parse
+import os
+
+testing_mode = os.environ.get("TESTING_MODE", False)
+payment_provider = os.environ.get("PAYMENT_PROVIDER", "stripe")
+stripe_api_key_test = os.environ.get("stripe_api_key_test")
+stripe_api_key = os.environ.get("stripe_api_key")
+stripe_link = os.environ.get("stripe_link")
+stripe_link_test = os.environ.get("stripe_link_test")  
+client_id = os.environ.get("client_id")
+client_secret = os.environ.get("client_secret")
+redirect_url_test = os.environ.get("redirect_url_test")
+redirect_url = os.environ.get("redirect_url")
+bmac_api_key = os.environ.get("bmac_api_key")
+bmac_link = os.environ.get("bmac_link")
+
 
 
 def get_api_key() -> str:
-    testing_mode = st.secrets.get("testing_mode", False)
+    testing_mode = os.environ.get("TESTING_MODE", False)
     return (
-        st.secrets["stripe_api_key_test"]
+        os.environ.get("stripe_api_key_test")
         if testing_mode
-        else st.secrets["stripe_api_key"]
+        else os.environ.get("stripe_api_key")
     )
 
 
@@ -18,16 +33,18 @@ def redirect_button(
     color="#FD504D",
     payment_provider: str = "stripe",
 ):
-    testing_mode = st.secrets.get("testing_mode", False)
-    stripe.api_key = get_api_key()
-    stripe_link = (
-        st.secrets["stripe_link_test"] if testing_mode else st.secrets["stripe_link"]
-    )
+    testing_mode = os.environ.get("testing_mode", False)
     encoded_email = urllib.parse.quote(customer_email)
     if payment_provider == "stripe":
+        stripe.api_key = get_api_key()
+        stripe_link = (
+            stripe_link_test
+            if testing_mode
+            else stripe_link
+        )
         button_url = f"{stripe_link}?prefilled_email={encoded_email}"
     elif payment_provider == "bmac":
-        button_url = f"{st.secrets['bmac_link']}"
+        button_url = f"{bmac_link}"
     else:
         raise ValueError("payment_provider must be 'stripe' or 'bmac'")
 
@@ -49,10 +66,14 @@ def redirect_button(
     )
 
 
-def get_customer_emails():
+def is_active_subscriber(email: str) -> bool:
     stripe.api_key = get_api_key()
-    customers = stripe.Customer.list()
-    emails = []
-    for i in customers["data"]:
-        emails.append(i["email"])
-    return emails
+    customers = stripe.Customer.list(email=email)
+    try:
+        customer = customers.data[0]
+    except IndexError:
+        return False
+
+    subscriptions = stripe.Subscription.list(customer=customer["id"])
+
+    return len(subscriptions) > 0
